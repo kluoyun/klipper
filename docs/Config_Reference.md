@@ -46,6 +46,18 @@ serial:
 #canbus_interface:
 #   If using a device connected to a CAN bus then this sets the CAN
 #   network interface to use. The default is 'can0'.
+#host:
+#   If using a device connected to a TBU(TCP bridged UART) then this
+#   sets the unique.
+#   Hostname or IP address of the TBU device to connect to. This value
+#   must be provided when using.
+#   TCP socket for communication.
+#port:
+#   If TBU is used to connect the device, set the TCP port of the TBU
+#   device. The default is 8888.
+#serial_channel:
+#   If TBU is used to connect the device, set the serial port channel
+#   of the TBU device used. The default is 0.
 #restart_method:
 #   This controls the mechanism the host will use to reset the
 #   micro-controller. The choices are 'arduino', 'cheetah', 'rpi_usb',
