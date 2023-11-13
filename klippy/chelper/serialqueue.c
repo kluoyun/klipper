@@ -84,6 +84,7 @@ struct serialqueue {
 
 #define SQT_UART 'u'
 #define SQT_CAN 'c'
+#define SQT_TCP 't'
 #define SQT_DEBUGFILE 'f'
 
 #define MIN_RTO 0.025
@@ -148,6 +149,10 @@ calculate_bittime(struct serialqueue *sq, uint32_t bytes)
     if (sq->serial_fd_type == SQT_CAN) {
         uint32_t pkts = DIV_ROUND_UP(bytes, 8);
         uint32_t bits = bytes * 8 + pkts * CANBUS_PACKET_BITS - CANBUS_IFS_BITS;
+        return sq->bittime_adjust * bits;
+    } else if(sq->serial_fd_type == SQT_TCP) {
+        uint32_t pkts = DIV_ROUND_UP(bytes, 8);
+        uint32_t bits = bytes * 8 + pkts * 40;
         return sq->bittime_adjust * bits;
     } else {
         return sq->bittime_adjust * bytes;

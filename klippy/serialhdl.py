@@ -3,7 +3,7 @@
 # Copyright (C) 2016-2021  Kevin O'Connor <kevin@koconnor.net>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
-import logging, threading, os
+import logging, threading, os, struct, socket
 import serial
 
 import msgproto, chelper, util
@@ -193,6 +193,38 @@ class SerialReader:
                 continue
             stk500v2_leave(serial_dev, self.reactor)
             ret = self._start_session(serial_dev)
+            if ret:
+                break
+    def connect_tcp(self, tcphost, tcpport, baud, serial_channel):
+        # Initialize TCP socket
+        logging.info("%sStarting TCP connect", self.warn_prefix)
+        start_time = self.reactor.monotonic()
+        while 1:
+            if self.reactor.monotonic() > start_time + 90.:
+                self._error("Unable to connect")
+            try:
+                serial_dev = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_USER_TIMEOUT, 800) # 连接超时
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)        # 禁用Nagle算法，提高实时性
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_CORK, 0)           # 禁用阻塞写入
+                serial_dev.setsockopt(socket.SOL_SOCKET,  socket.SO_KEEPALIVE, 1)       # 长连接保活
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)        # 保活重试次数
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 1)
+                serial_dev.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+                serial_dev.connect((tcphost, tcpport))
+            except (OSError, IOError) as e:
+                logging.warn("%sUnable to connect to TCP host: %s",
+                             self.warn_prefix, e)
+                self.reactor.pause(self.reactor.monotonic() + 5.)
+                continue
+            
+            # 首次连接，发送设置参数，共10个字节，0x33, 0x33开头和结尾
+            # 设置参数第1位是设置类型，0x1d=设置串口并初始化, 其它保留。
+            # 第2位为此mcu指定的转换器上的串口通道
+            # 第3-6位4个字节为波特率的大端序字节
+            data = bytes([0x33, 0x33, 0x1d, serial_channel]) + struct.pack(">I", baud) + bytes([0x33, 0x33])
+            serial_dev.send(data)
+            ret = self._start_session(serial_dev, b't')
             if ret:
                 break
     def connect_file(self, debugoutput, dictionary, pace=False):

@@ -217,7 +217,7 @@ class MCU_trsync:
             s.note_homing_end()
         return params['trigger_reason']
 
-TRSYNC_TIMEOUT = 0.025
+TRSYNC_TIMEOUT = 0.100
 TRSYNC_SINGLE_MCU_TIMEOUT = 0.250
 
 class MCU_endstop:
@@ -567,12 +567,22 @@ class MCU:
         self._serial = serialhdl.SerialReader(self._reactor, warn_prefix=wp)
         self._baud = 0
         self._canbus_iface = None
+        self._tcp_port = None
+        self._serial_channel = None
         canbus_uuid = config.get('canbus_uuid', None)
+        tcp_host = config.get('host', None)
         if canbus_uuid is not None:
             self._serialport = canbus_uuid
             self._canbus_iface = config.get('canbus_interface', 'can0')
             cbid = self._printer.load_object(config, 'canbus_ids')
             cbid.add_uuid(config, canbus_uuid, self._canbus_iface)
+        elif tcp_host is not None:
+            self._serialport = tcp_host
+            self._tcp_port = config.getint('port', 8888)
+            self._baud = config.getint('baud', 250000, minval=2400)
+            self._serial_channel = config.getint('serial_channel', 0, minval=0, maxval=2)
+            tbuchs = self._printer.load_object(config, 'tbu_chs')
+            tbuchs.check_ch(config, self._serial_channel, self._serialport)
         else:
             self._serialport = config.get('serial')
             if not (self._serialport.startswith("/dev/rpmsg_")
@@ -793,6 +803,8 @@ class MCU:
                     nodeid = cbid.get_nodeid(self._serialport)
                     self._serial.connect_canbus(self._serialport, nodeid,
                                                 self._canbus_iface)
+                elif self._tcp_port is not None and self._serial_channel is not None:
+                    self._serial.connect_tcp(self._serialport, self._tcp_port, self._baud, self._serial_channel)
                 elif self._baud:
                     # Cheetah boards require RTS to be deasserted
                     # else a reset will trigger the built-in bootloader.
