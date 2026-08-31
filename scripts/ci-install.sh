@@ -54,6 +54,25 @@ tar xJf ${CACHE_DIR}/${OR1K_ARCHIVE}
 
 
 ######################################################################
+# Install Espressif toolchains
+######################################################################
+
+echo -e "\n\n=============== Install Espressif toolchains\n\n"
+
+ESP_GCC_VERSION="15.2.0_20251204"
+ESP_GCC_RELEASE="esp-${ESP_GCC_VERSION}"
+ESP_GCC_URL="https://github.com/espressif/crosstool-NG/releases/download/${ESP_GCC_RELEASE}"
+for ESP_TARGET in riscv32-esp-elf xtensa-esp-elf ; do
+    ESP_ARCHIVE="${ESP_TARGET}-${ESP_GCC_VERSION}-x86_64-linux-gnu.tar.xz"
+    if [ ! -f ${CACHE_DIR}/${ESP_ARCHIVE} ]; then
+        wget "${ESP_GCC_URL}/${ESP_ARCHIVE}" -O "${CACHE_DIR}/${ESP_ARCHIVE}"
+    fi
+    cd ${BUILD_DIR}
+    tar xJf ${CACHE_DIR}/${ESP_ARCHIVE}
+done
+
+
+######################################################################
 # Create python3 virtualenv environment
 ######################################################################
 

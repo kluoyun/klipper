@@ -9,6 +9,8 @@ MAIN_DIR=${PWD}
 BUILD_DIR=${PWD}/ci_build
 export PATH=${BUILD_DIR}/pru-elf/bin:${PATH}
 export PATH=${BUILD_DIR}/or1k-elf/bin:${PATH}
+export PATH=${BUILD_DIR}/riscv32-esp-elf/bin:${PATH}
+export PATH=${BUILD_DIR}/xtensa-esp-elf/bin:${PATH}
 PYTHON=${BUILD_DIR}/python-env/bin/python
 PYTHON2=${BUILD_DIR}/python2-env/bin/python
 

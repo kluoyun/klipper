@@ -1,0 +1,178 @@
+# Kconfig settings for Espressif ESP32 processors
+
+if MACH_ESP32
+
+config ESP32_SELECT
+    bool
+    default y
+    select HAVE_CHIPID
+    select HAVE_GPIO
+    select HAVE_GPIO_ADC
+    select HAVE_GPIO_SPI
+    select HAVE_GPIO_I2C
+    select HAVE_GPIO_HARD_PWM
+    select HAVE_STRICT_TIMING
+    select HAVE_STEPPER_OPTIMIZED_BOTH_EDGE
+
+config BOARD_DIRECTORY
+    string
+    default "esp32"
+
+choice
+    prompt "Processor model"
+    config MACH_ESP32C3
+        bool "ESP32-C3 (revision 3 or newer)"
+    config MACH_ESP32S3
+        bool "ESP32-S3"
+endchoice
+
+config MCU
+    string
+    default "esp32c3" if MACH_ESP32C3
+    default "esp32s3" if MACH_ESP32S3
+
+config CLOCK_FREQ
+    int
+    default 16000000 if MACH_ESP32C3
+    default 240000000 if MACH_ESP32S3
+
+config FLASH_SIZE
+    hex
+    default 0x200000
+
+config ESP32_FLASH_SIZE_CODE
+    hex
+    default 0x10
+
+config RAM_START
+    hex
+    default 0x3fc80000 if MACH_ESP32C3
+    default 0x3fca0000 if MACH_ESP32S3
+
+config RAM_SIZE
+    hex
+    default 0x50000 if MACH_ESP32C3
+    default 0x37000 if MACH_ESP32S3
+
+config STACK_SIZE
+    int
+    default 4096
+
+choice
+    prompt "Communication Interface"
+    config ESP32_SERIAL_UART0
+        bool "UART0"
+        select SERIAL
+    config ESP32_SERIAL_UART1
+        bool "UART1"
+        select SERIAL
+    config ESP32_SERIAL_UART2
+        bool "UART2"
+        depends on MACH_ESP32S3
+        select SERIAL
+    config ESP32_USB_SERIAL_JTAG
+        bool "USB Serial/JTAG (on GPIO18/GPIO19)"
+        depends on MACH_ESP32C3
+        select SERIAL
+        help
+            Use the ESP32-C3 fixed-function USB Serial/JTAG CDC-ACM port
+            for Klipper communication. The USB descriptors and VID/PID are
+            provided by the chip and can not be changed by the firmware.
+    config ESP32_USB_CDC
+        bool "USB (on GPIO19/GPIO20)"
+        depends on MACH_ESP32S3
+        select USBSERIAL
+    config ESP32_CANBUS
+        bool "CAN bus"
+        depends on MACH_ESP32S3
+        select CANSERIAL
+    config ESP32_USBCANBUS
+        bool "USB to CAN bus bridge (USB on GPIO19/GPIO20)"
+        depends on MACH_ESP32S3
+        select USBCANBUS
+endchoice
+
+# Numeric UART index used to select the register block in esp32_regs.h.
+config ESP32_SERIAL_UART
+    int
+    default 2 if ESP32_SERIAL_UART2
+    default 1 if ESP32_SERIAL_UART1
+    default 0
+
+config ESP32_CANBUS_GPIO_RX
+    int "CAN RX gpio number" if CANBUS
+    default 4
+    range 0 48
+    help
+        GPIO connected to the RX output of the external CAN transceiver.
+        GPIO22 through GPIO37 are reserved for flash or PSRAM and are
+        rejected by the firmware.
+
+config ESP32_CANBUS_GPIO_TX
+    int "CAN TX gpio number" if CANBUS
+    default 5
+    range 0 48
+    help
+        GPIO connected to the TX input of the external CAN transceiver.
+        GPIO22 through GPIO37 are reserved for flash or PSRAM and are
+        rejected by the firmware.
+
+config ESP32_SERIAL_RX_PIN
+    int "UART0 RX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART0
+    range 0 21 if MACH_ESP32C3
+    range 0 48 if MACH_ESP32S3
+    default 20 if MACH_ESP32C3
+    default 44 if MACH_ESP32S3
+    help
+        UART receive GPIO. Pins reserved for SPI flash or PSRAM are rejected
+        by the firmware.
+
+config ESP32_SERIAL_TX_PIN
+    int "UART0 TX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART0
+    range 0 21 if MACH_ESP32C3
+    range 0 48 if MACH_ESP32S3
+    default 21 if MACH_ESP32C3
+    default 43 if MACH_ESP32S3
+    help
+        UART transmit GPIO. Pins reserved for SPI flash or PSRAM are rejected
+        by the firmware.
+
+config ESP32_SERIAL_UART1_RX_PIN
+    int "UART1 RX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART1
+    range 0 21 if MACH_ESP32C3
+    range 0 48 if MACH_ESP32S3
+    default 4 if MACH_ESP32C3
+    default 18 if MACH_ESP32S3
+    help
+        UART1 receive GPIO. Pins reserved for SPI flash or PSRAM are rejected
+        by the firmware.
+
+config ESP32_SERIAL_UART1_TX_PIN
+    int "UART1 TX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART1
+    range 0 21 if MACH_ESP32C3
+    range 0 48 if MACH_ESP32S3
+    default 5 if MACH_ESP32C3
+    default 17 if MACH_ESP32S3
+    help
+        UART1 transmit GPIO. Pins reserved for SPI flash or PSRAM are rejected
+        by the firmware.
+
+config ESP32_SERIAL_UART2_RX_PIN
+    int "UART2 RX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART2
+    depends on MACH_ESP32S3
+    range 0 48 if MACH_ESP32S3
+    default 4
+    help
+        UART2 receive GPIO. UART2 has no fixed IOMUX pins on ESP32-S3, so
+        the signal is routed through the GPIO matrix.
+
+config ESP32_SERIAL_UART2_TX_PIN
+    int "UART2 TX pin" if LOW_LEVEL_OPTIONS && ESP32_SERIAL_UART2
+    depends on MACH_ESP32S3
+    range 0 48 if MACH_ESP32S3
+    default 5
+    help
+        UART2 transmit GPIO. UART2 has no fixed IOMUX pins on ESP32-S3, so
+        the signal is routed through the GPIO matrix.
+
+endif

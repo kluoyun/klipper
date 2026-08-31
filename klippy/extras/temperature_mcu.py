@@ -82,6 +82,8 @@ class PrinterTemperatureMCU:
             ('stm32l4', self.config_stm32g0),
             ('stm32h723', self.config_stm32h723),
             ('stm32h7', self.config_stm32h7),
+            ('esp32c3', self.config_esp32c3),
+            ('esp32s3', self.config_esp32s3),
             ('', self.config_unknown)]
         for name, func in cfg_funcs:
             if self.mcu_type.startswith(name):
@@ -108,6 +110,20 @@ class PrinterTemperatureMCU:
     def config_rp2040(self):
         self.slope = 3.3 / -0.001721
         self.base_temperature = self.calc_base(27., 0.706 / 3.3)
+    def config_esp32_tsens(self, efuse_addr, calib_shift):
+        # The firmware maps the 8-bit TSENS result over ADC_MAX.
+        #   temperature = .4386 * raw - 20.52 - eFuse_delta / 10
+        self.slope = .4386 * 255.
+        efuse_data4 = self.read32(efuse_addr)
+        delta = 0
+        if efuse_data4 & 0x3:
+            cal = (efuse_data4 >> calib_shift) & 0x1ff
+            delta = -(cal & 0xff) if cal & 0x100 else cal
+        self.base_temperature = -20.52 - delta / 10.
+    def config_esp32s3(self):
+        self.config_esp32_tsens(0x6000706c, 4)
+    def config_esp32c3(self):
+        self.config_esp32_tsens(0x6000886c, 3)
     def config_sam3(self):
         self.slope = 3.3 / .002650
         self.base_temperature = self.calc_base(27., 0.8 / 3.3)

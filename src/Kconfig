@@ -24,6 +24,8 @@ choice
         bool "Huada Semiconductor HC32F460"
     config MACH_RPXXXX
         bool "Raspberry Pi RP2040/RP235x"
+    config MACH_ESP32
+        bool "Espressif ESP32"
     config MACH_PRU
         bool "Beaglebone PRU"
     config MACH_AR100
@@ -41,6 +43,7 @@ source "src/lpc176x/Kconfig"
 source "src/stm32/Kconfig"
 source "src/hc32f460/Kconfig"
 source "src/rp2040/Kconfig"
+source "src/esp32/Kconfig"
 source "src/pru/Kconfig"
 source "src/ar100/Kconfig"
 source "src/linux/Kconfig"

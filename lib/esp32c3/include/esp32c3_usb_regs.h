@@ -1,0 +1,26 @@
+// ESP32-C3 USB Serial/JTAG register definitions
+//
+// Copyright (C) 2026  Xiaokui Zhao <xiaok@zxkxz.cn>
+//
+// This file may be distributed under the terms of the GNU GPLv3 license.
+
+#ifndef __ESP32C3_USB_REGS_H
+#define __ESP32C3_USB_REGS_H
+
+#define USB_SERIAL_JTAG_EP1        (ESP_USB_SERIAL_JTAG_BASE + 0x000u)
+#define USB_SERIAL_JTAG_EP1_CONF   (ESP_USB_SERIAL_JTAG_BASE + 0x004u)
+#define USB_SERIAL_JTAG_INT_STATUS (ESP_USB_SERIAL_JTAG_BASE + 0x00cu)
+#define USB_SERIAL_JTAG_INT_ENABLE (ESP_USB_SERIAL_JTAG_BASE + 0x010u)
+#define USB_SERIAL_JTAG_INT_CLEAR  (ESP_USB_SERIAL_JTAG_BASE + 0x014u)
+#define USB_SERIAL_JTAG_CONF0      (ESP_USB_SERIAL_JTAG_BASE + 0x018u)
+#define USB_SERIAL_JTAG_WR_DONE    BIT32(0)
+#define USB_SERIAL_JTAG_TX_FREE    BIT32(1)
+#define USB_SERIAL_JTAG_RX_AVAIL   BIT32(2)
+#define USB_SERIAL_JTAG_PHY_SEL    BIT32(0)
+#define USB_SERIAL_JTAG_PAD_ENABLE BIT32(14)
+#define USB_SERIAL_JTAG_INT_RX     BIT32(2)
+#define USB_SERIAL_JTAG_INT_TX     BIT32(3)
+#define USB_WRAP_OTG_CONF          USB_SERIAL_JTAG_CONF0
+#define USB_WRAP_PAD_ENABLE        0u
+
+#endif // esp32c3_usb_regs.h
